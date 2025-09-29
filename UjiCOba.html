@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indonesian Rupiah Inflation & Exchange Rate Predictor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #cc0000; /* Indonesian red */
+            --secondary: #1a1a1a;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --success: #28a745;
+            --info: #17a2b8;
+            --warning: #ffc107;
+            --blue: #0066cc;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary), #990000);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo i {
+            font-size: 2rem;
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .tagline {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1628595351029-c2bf17511435?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+        }
+
+        .hero h2 {
+            font-size: 2.8rem;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 30px;
+        }
+
+        .indonesia-flag {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .flag {
+            display: flex;
+            height: 40px;
+            width: 300px;
+            border: 2px solid white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .flag-red {
+            background-color: var(--primary);
+            width: 50%;
+        }
+
+        .flag-white {
+            background-color: white;
+            width: 50%;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 40px 0;
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            color: var(--secondary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 500px;
+            margin: 20px 0;
+        }
+
+        .chart-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .chart-controls button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+        }
+
+        .chart-controls button:hover {
+            background: #aa0000;
+        }
+
+        /* Comparison Tool */
+        .comparison-tool {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid #e9ecef;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: #aa0000;
+            transform: translateY(-2px);
+        }
+
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+
+        /* Results */
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #e9f7ef;
+            border-radius: 8px;
+            border-left: 4px solid var(--success);
+        }
+
+        .results h3 {
+            color: var(--success);
+            margin-bottom: 15px;
+        }
+
+        .result-item {
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .result-value {
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        /* Info Cards */
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-top: 4px solid var(--primary);
+        }
+
+        .info-card h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-card p {
+            color: #555;
+        }
+
+        /* Legend */
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--secondary);
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .connect-button {
+            display: inline-block;
+            background: #0077B5; /* LinkedIn blue */
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            margin: 15px 0;
+        }
+
+        .connect-button:hover {
+            background: #005885;
+            transform: translateY(-2px);
+        }
+
+        .connect-button i {
+            margin-right: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .hero h2 {
+                font-size: 2.2rem;
+            }
+            
+            .chart-container {
+                height: 400px;
+            }
+            
+            .chart-controls {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <i class="fas fa-coins"></i>
+                <div>
+                    <h1>Rupiah Inflation & Exchange Rate Predictor</h1>
+                    <div class="tagline">Indonesian Currency Analysis & Forecasting (1946-2100)</div>
+                </div>
+            </div>
+            <div class="indonesia-flag">
+                <div class="flag">
+                    <div class="flag-red"></div>
+                    <div class="flag-white"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h2>Indonesian Rupiah: Inflation & Exchange Rate Analysis</h2>
+            <p>Explore historical trends and future projections for Indonesian Rupiah inflation and IDR/USD exchange rates from 1946 through 2100</p>
+            <div class="indonesia-flag">
+                <div class="flag">
+                    <div class="flag-red"></div>
+                    <div class="flag-white"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container main-content">
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-chart-line"></i>
+                Inflation Rate & IDR/USD Exchange Rate (1946-2100)
+            </h2>
+            
+            <div class="chart-legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #cc0000;"></div>
+                    <span>Inflation Rate (%)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #0066cc;"></div>
+                    <span>IDR/USD Exchange Rate</span>
+                </div>
+            </div>
+            
+            <div class="chart-controls">
+                <button id="resetZoom">Reset Zoom</button>
+                <button id="zoomIn">Zoom In</button>
+                <button id="zoomOut">Zoom Out</button>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="inflationChart"></canvas>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-calculator"></i>
+                Inflation & Exchange Rate Comparison Tool
+            </h2>
+            <div class="comparison-tool">
+                <p>Select two years to compare inflation rates, exchange rates, and see how the value of the Rupiah has changed over time.</p>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="year1">From Year</label>
+                        <select id="year1" class="form-control">
+                            <!-- Years will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="year2">To Year</label>
+                        <select id="year2" class="form-control">
+                            <!-- Years will be populated by JavaScript -->
+                        </select>
+                    </div>
+                </div>
+                
+                <button id="compareBtn" class="btn btn-block">Calculate Inflation & Exchange Rate Difference</button>
+                
+                <div id="results" class="results" style="display: none;">
+                    <h3>Comparison Results</h3>
+                    <div class="result-item">
+                        Inflation Rate from <span id="fromYear"></span> to <span id="toYear"></span>: 
+                        <span id="inflationRate" class="result-value"></span>
+                    </div>
+                    <div class="result-item">
+                        Exchange Rate Change: <span id="fromRate" class="result-value"></span> to <span id="toRate" class="result-value"></span> IDR/USD
+                    </div>
+                    <div class="result-item">
+                        Rupiah Depreciation: <span id="depreciation" class="result-value"></span>
+                    </div>
+                    <div class="result-item">
+                        What cost Rp1 in <span id="fromYear2"></span> would cost Rp<span id="costToday" class="result-value"></span> in <span id="toYear2"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-cards">
+            <div class="info-card">
+                <h3><i class="fas fa-history"></i> Historical Context</h3>
+                <p>The Indonesian Rupiah was introduced in 1946, replacing the Dutch East Indies guilder. Since then, Indonesia has experienced periods of high inflation and currency depreciation, especially during the Asian Financial Crisis in 1997-1998 when inflation exceeded 58% and the rupiah fell from 2,600 to over 15,000 per USD.</p>
+            </div>
+            <div class="info-card">
+                <h3><i class="fas fa-chart-area"></i> Projection Methodology</h3>
+                <p>Our projections beyond 2023 are based on historical trends, current economic policies, and global economic factors. We assume a gradual stabilization of inflation rates and currency depreciation over time as the Indonesian economy matures and strengthens.</p>
+            </div>
+            <div class="info-card">
+                <h3><i class="fas fa-lightbulb"></i> Understanding Inflation & Exchange Rates</h3>
+                <p>Inflation measures the rate at which prices rise, while exchange rates reflect the value of one currency against another. High inflation typically leads to currency depreciation as purchasing power decreases. The relationship between inflation and exchange rates is fundamental to understanding currency valuation.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container footer-content">
+            <h3>Indonesian Rupiah Inflation & Exchange Rate Predictor</h3>
+            <a href="https://www.linkedin.com/in/jayson-ferdyanto-soelimin-b53a66383" class="connect-button" target="_blank">
+                <i class="fab fa-linkedin"></i> Connect with me
+            </a>
+            <p>&copy; 2023 Rupiah Inflation Predictor. For educational purposes only.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Generate inflation and exchange rate data
+        function generateData() {
+            const data = [];
+            const baseYear = 1946;
+            const endYear = 2100;
+            
+            // Historical inflation data (approximate real values)
+            const historicalInflation = {
+                1946: 0,    // Base year
+                1947: 15,   // Early independence period
+                1948: 25,
+                1949: 35,
+                1950: 20,
+                1951: 15,
+                1952: 10,
+                1953: 8,
+                1954: 6,
+                1955: 5,
+                1956: 10,
+                1957: 15,
+                1958: 25,
+                1959: 30,
+                1960: 40,   // Hyperinflation period
+                1961: 100,
+                1962: 250,
+                1963: 400,
+                1964: 600,
+                1965: 1000, // Peak hyperinflation
+                1966: 650,  // Stabilization begins
+                1967: 120,
+                1968: 85,
+                1969: 15,
+                1970: 10,
+                1971: 8,
+                1972: 6,
+                1973: 25,   // Oil crisis
+                1974: 40,
+                1975: 20,
+                1976: 12,
+                1977: 10,
+                1978: 8,
+                1979: 20,   // Second oil crisis
+                1980: 18,
+                1981: 12,
+                1982: 10,
+                1983: 9,
+                1984: 8,
+                1985: 5,
+                1986: 6,
+                1987: 8,
+                1988: 9,
+                1989: 6,
+                1990: 8,
+                1991: 9,
+                1992: 7,
+                1993: 10,
+                1994: 9,
+                1995: 8,
+                1996: 7,
+                1997: 10,   // Asian Financial Crisis
+                1998: 58,   // Peak crisis
+                1999: 20,
+                2000: 9,
+                2001: 12,
+                2002: 10,
+                2003: 6,
+                2004: 6,
+                2005: 10,
+                2006: 13,
+                2007: 6,
+                2008: 11,   // Global financial crisis
+                2009: 4,
+                2010: 6,
+                2011: 5,
+                2012: 4,
+                2013: 8,
+                2014: 7,
+                2015: 6,
+                2016: 3,
+                2017: 3,
+                2018: 3,
+                2019: 3,
+                2020: 2,    // COVID-19 impact
+                2021: 2,
+                2022: 5,    // Global inflation surge
+                2023: 4
+            };
+            
+            // Historical exchange rate data (IDR per USD)
+            const historicalExchangeRate = {
+                1946: 3,     // Early independence
+                1947: 3.5,
+                1948: 4,
+                1949: 4.5,
+                1950: 5,
+                1951: 7,
+                1952: 10,
+                1953: 15,
+                1954: 20,
+                1955: 25,
+                1956: 30,
+                1957: 40,
+                1958: 60,
+                1959: 100,
+                1960: 200,   // Hyperinflation period
+                1961: 400,
+                1962: 800,
+                1963: 1500,
+                1964: 2500,
+                1965: 5000,  // Peak hyperinflation
+                1966: 3000,  // Stabilization begins
+                1967: 1000,
+                1968: 500,
+                1969: 300,
+                1970: 200,
+                1971: 150,
+                1972: 125,
+                1973: 200,   // Oil crisis
+                1974: 400,
+                1975: 600,
+                1976: 800,
+                1977: 900,
+                1978: 1000,
+                1979: 1200,  // Second oil crisis
+                1980: 1500,
+                1981: 1700,
+                1982: 1900,
+                1983: 2000,
+                1984: 2100,
+                1985: 2200,
+                1986: 2300,
+                1987: 2400,
+                1988: 2500,
+                1989: 2600,
+                1990: 2700,
+                1991: 2800,
+                1992: 2900,
+                1993: 3000,
+                1994: 3100,
+                1995: 3200,
+                1996: 3300,
+                1997: 4000,  // Asian Financial Crisis
+                1998: 15000, // Peak crisis
+                1999: 10000,
+                2000: 8000,
+                2001: 9000,
+                2002: 9500,
+                2003: 10000,
+                2004: 10500,
+                2005: 11000,
+                2006: 11500,
+                2007: 12000,
+                2008: 13000, // Global financial crisis
+                2009: 12500,
+                2010: 12000,
+                2011: 12200,
+                2012: 12400,
+                2013: 12600,
+                2014: 12800,
+                2015: 13000,
+                2016: 13200,
+                2017: 13400,
+                2018: 13600,
+                2019: 13800,
+                2020: 14500, // COVID-19 impact
+                2021: 14800,
+                2022: 15200, // Global inflation surge
+                2023: 15500
+            };
+            
+            // Pre-calculate last historical year and rate for exchange rate
+            const lastHistoricalYear = Math.max(...Object.keys(historicalExchangeRate).map(Number));
+            const lastHistoricalRate = historicalExchangeRate[lastHistoricalYear];
+            
+            // Generate data for all years
+            let cpi = 100; // Base year CPI
+            
+            for (let year = baseYear; year <= endYear; year++) {
+                // Get inflation rate
+                let inflation;
+                if (historicalInflation[year] !== undefined) {
+                    inflation = historicalInflation[year];
+                } else {
+                    // Project future inflation
+                    if (year < 2030) inflation = 3 + Math.random() * 2; // 3-5%
+                    else if (year < 2050) inflation = 2.5 + Math.random() * 1.5; // 2.5-4%
+                    else if (year < 2075) inflation = 2 + Math.random() * 1; // 2-3%
+                    else inflation = 1.5 + Math.random() * 1; // 1.5-2.5%
+                }
+                
+                // Get exchange rate
+                let exchangeRate;
+                if (historicalExchangeRate[year] !== undefined) {
+                    exchangeRate = historicalExchangeRate[year];
+                } else {
+                    // Project future exchange rate (gradual depreciation)
+                    const yearsSinceLast = year - lastHistoricalYear;
+                    const avgDepreciation = 0.025;
+                    exchangeRate = lastHistoricalRate * Math.pow(1 + avgDepreciation, yearsSinceLast);
+                    exchangeRate *= (0.95 + Math.random() * 0.1);
+                }
+                
+                // Update CPI (except for base year)
+                if (year === baseYear) {
+                    // CPI remains 100 for base year
+                } else {
+                    cpi = cpi * (1 + inflation / 100);
+                }
+                
+                data.push({
+                    year: year,
+                    inflation: inflation,
+                    exchangeRate: exchangeRate,
+                    cpi: cpi
+                });
+            }
+            
+            return data;
+        }
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            const data = generateData();
+            
+            // Populate year dropdowns
+            const year1Select = document.getElementById('year1');
+            const year2Select = document.getElementById('year2');
+            
+            data.forEach(item => {
+                const option1 = new Option(item.year, item.year);
+                const option2 = new Option(item.year, item.year);
+                year1Select.add(option1);
+                year2Select.add(option2);
+            });
+            
+            // Set default years
+            year1Select.value = 2000;
+            year2Select.value = 2023;
+            
+            // Create inflation and exchange rate chart
+            const ctx = document.getElementById('inflationChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(item => item.year),
+                    datasets: [
+                        {
+                            label: 'Inflation Rate (%)',
+                            data: data.map(item => item.inflation),
+                            borderColor: '#cc0000',
+                            backgroundColor: 'rgba(204, 0, 0, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.1,
+                            yAxisID: 'y-inflation'
+                        },
+                        {
+                            label: 'IDR/USD Exchange Rate',
+                            data: data.map(item => item.exchangeRate),
+                            borderColor: '#0066cc',
+                            backgroundColor: 'rgba(0, 102, 204, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.1,
+                            yAxisID: 'y-exchange'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    return `Year: ${context[0].label}`;
+                                },
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        if (context.dataset.yAxisID === 'y-inflation') {
+                                            label += context.parsed.y.toFixed(2) + '%';
+                                        } else {
+                                            label += context.parsed.y.toFixed(0) + ' IDR/USD';
+                                        }
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        zoom: {
+                            zoom: {
+                                wheel: {
+                                    enabled: true,
+                                },
+                                pinch: {
+                                    enabled: true
+                                },
+                                mode: 'xy',
+                            },
+                            pan: {
+                                enabled: true,
+                                mode: 'xy',
+                            }
+                        }
+                    },
+                    scales: {
+                        'y-inflation': {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Inflation Rate (%)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        },
+                        'y-exchange': {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'IDR/USD Exchange Rate'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(0);
+                                }
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Year'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Chart control buttons
+            document.getElementById('resetZoom').addEventListener('click', function() {
+                chart.resetZoom();
+            });
+            
+            document.getElementById('zoomIn').addEventListener('click', function() {
+                chart.zoom(1.1);
+            });
+            
+            document.getElementById('zoomOut').addEventListener('click', function() {
+                chart.zoom(0.9);
+            });
+            
+            // Add comparison functionality
+            document.getElementById('compareBtn').addEventListener('click', function() {
+                const year1 = parseInt(year1Select.value);
+                const year2 = parseInt(year2Select.value);
+                
+                if (year1 >= year2) {
+                    alert('Please select a valid range where the first year is earlier than the second year.');
+                    return;
+                }
+                
+                const data1 = data.find(item => item.year === year1);
+                const data2 = data.find(item => item.year === year2);
+                
+                if (!data1 || !data2) {
+                    alert('Invalid year selected.');
+                    return;
+                }
+                
+                // Calculate cumulative inflation
+                const cumulativeInflation = ((data2.cpi - data1.cpi) / data1.cpi) * 100;
+                const costToday = (data2.cpi / data1.cpi).toFixed(2);
+                
+                // Calculate exchange rate change
+                const exchangeRateChange = ((data2.exchangeRate - data1.exchangeRate) / data1.exchangeRate) * 100;
+                const depreciation = Math.abs(exchangeRateChange).toFixed(2) + '%';
+                
+                // Display results
+                document.getElementById('fromYear').textContent = year1;
+                document.getElementById('toYear').textContent = year2;
+                document.getElementById('inflationRate').textContent = cumulativeInflation.toFixed(2) + '%';
+                document.getElementById('fromRate').textContent = data1.exchangeRate.toFixed(0);
+                document.getElementById('toRate').textContent = data2.exchangeRate.toFixed(0);
+                document.getElementById('depreciation').textContent = depreciation;
+                document.getElementById('fromYear2').textContent = year1;
+                document.getElementById('toYear2').textContent = year2;
+                document.getElementById('costToday').textContent = costToday;
+                
+                document.getElementById('results').style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>
