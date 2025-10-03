@@ -975,23 +975,10 @@
             <h2 class="section-title fade-in">Get In Touch</h2>
             <div class="contact-container">
                 <p class="fade-in">Feel free to reach out to me for any inquiries or collaboration opportunities.</p>
-                <div class="contact-form fade-in">
-                    <form id="contactForm">
-                        <div class="form-group">
-                            <label for="name">Name</label>
-                            <input type="text" id="name" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email</label>
-                            <input type="email" id="email" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="message">Message</label>
-                            <textarea id="message" class="form-control" required></textarea>
-                        </div>
-                        <button type="submit" class="btn">Send Message</button>
-                    </form>
-                </div>
+              <div class="contact-form fade-in">
+    <p style="margin-bottom: 20px; color: var(--text-secondary);">Click the button below to send me an email directly from your email client.</p>
+    <button id="emailButton" class="btn">Send Email</button>
+</div>
                 <div class="contact-info fade-in">
                     <div class="contact-item">
                         <i class="fas fa-phone"></i>
@@ -1204,32 +1191,23 @@
             observer.observe(el);
         });
 
-        // Form submission handler
-        document.getElementById('contactForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Create success message
-            const successMessage = document.createElement('div');
-            successMessage.className = 'success-message';
-            successMessage.textContent = 'Thank you for your message! I will get back to you soon.';
-            successMessage.style.padding = '15px';
-            successMessage.style.backgroundColor = 'var(--secondary)';
-            successMessage.style.color = 'var(--dark)';
-            successMessage.style.marginTop = '20px';
-            successMessage.style.borderRadius = '5px';
-            successMessage.style.textAlign = 'center';
-            
-            // Add to DOM
-            this.appendChild(successMessage);
-            
-            // Reset form
-            this.reset();
-            
-            // Remove message after 5 seconds
-            setTimeout(() => {
-                successMessage.remove();
-            }, 5000);
-        });
+    // Email button handler
+document.getElementById('emailButton').addEventListener('click', function() {
+    // Create the mailto link
+    const email = 'jaysonferdyanto@gmail.com';
+    const subject = 'Inquiry from Portfolio Website';
+    const body = 'Hello Jayson,\n\nI\'m reaching out to you regarding...\n\nBest regards,';
+    
+    // Encode the subject and body for URL
+    const encodedSubject = encodeURIComponent(subject);
+    const encodedBody = encodeURIComponent(body);
+    
+    // Create the mailto URL
+    const mailtoLink = `mailto:${email}?subject=${encodedSubject}&body=${encodedBody}`;
+    
+    // Open the default email client
+    window.location.href = mailtoLink;
+});
 
         // Navbar background on scroll
         window.addEventListener('scroll', function() {
